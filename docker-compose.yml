@@ -110,7 +110,7 @@ services:
       - INFLUX_ORG=porchlight-home
       - INFLUX_BUCKET=telemetry
     volumes:
-      - ./engine/app:/app
+      - ./engine:/app
       - ./logs:/app/logs
     networks:
       - porchlight-network
