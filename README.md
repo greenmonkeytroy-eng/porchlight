@@ -1,56 +1,48 @@
-# Porchlight OS — Master File Overview & Manifest
+# Porchlight OS
 
-**System**: Porchlight OS (Domestic / Residential Digital Twin Node)  
-**Product Suite**: Twinscape / Timescape Digital Twin Family  
-**Target Environment**: Local Docker Stack + VS Code with Claude Code  
+**System**: Porchlight OS (Domestic / Residential Digital Twin Node)
+**Product Suite**: Twinscape / Timescape Digital Twin Family
+**Target Environment**: Local Docker Stack
 
----
+Porchlight is a privacy-first, locally hosted Digital Twin of Domestic Operations. It connects Home Assistant, Porchlight Provisions (a Grocy-backed consumables ERP), Firefly III, InfluxDB, and Grafana via a Python middleware engine (`porchlight-engine`) to track fixed/variable household costs and consumables, and surface them through a spatial Grafana dashboard.
 
-## 1. Final Production File Index
-
-Below is the complete inventory of the final production files created for your **Porchlight OS** repository. Use these files when copying your workspace into VS Code.
-
-| File Name | VS Code Target Location | Category | Purpose & Description |
-| :--- | :--- | :--- | :--- |
-| **`claude-code-instructions-v3.md`** | `CLAUDE.md` *(root)* | Guide / Context | Master instructions for Claude Code in VS Code. Defines directory structure, Pydantic/AsyncIO standards, DR-AIS schema, and step-by-step build prompts. |
-| **`porchlight-spec-v3.md`** | `porchlight-spec-v3.md` | Architecture | Full system specification detailing the Industrial Intelligence Stack, 6 container subsystems, fixed property overhead framework, and local privacy model. |
-| **`porchlight-tasks-v3.md`** | `porchlight-tasks-v3.md` | Task Taxonomy | Deconstructed domestic task primitives, core targeting system formulas (PFOR, EUR, $/2k kcal, FSR, OER), occupant settlement formulas, and 5-Phase execution plan. |
-| **`docker-compose-v2.yml`** | `docker-compose.yml` | Infrastructure | Container orchestration file for Home Assistant, Grocy, Firefly III, InfluxDB v2, Grafana, and the Porchlight Middleware Engine. |
-| **`grocy-client-v2.py`** | `engine/app/clients/grocy.py` | Python Core | Pantry ERP API client and metrics calculator. Fetches stock levels, calculates $/2k kcal, flags expiring items, and emits DR-AIS decision logs. |
-| **`firefly-rates-client-v2.py`** | `engine/app/services/rates_allocator.py` | Python Core | Ingests council rates, HOA levies, insurance, and standing supply fees. Computes PFOR, EUR, and multi-occupant pro-rata monthly settlements. |
-| **`receipt-parser-v2.py`** | `engine/app/services/ocr_parser.py` | Python Core | OCR receipt parsing pipeline using regex and confidence scoring to extract line items and emit DR-AIS logs for human-in-the-loop review. |
-| **`porchlight-dashboard.json`** | Grafana Import | Analytics | Importable JSON configuration for the **Porchlight Portal** dashboard in Grafana, featuring real-time PFOR, EUR, $/2k kcal, FSR, and settlement panels. |
+See `CLAUDE.md` for engine coding standards, `porchlight-spec.md` for the full architecture, `porchlight-tasks.md` for the task taxonomy and metric formulas, and `porchlight-dashboard-ui-spec.md` for the dashboard's spatial layout.
 
 ---
 
-## 2. Version Evolution & File Mapping
-
-During our iterative design process, several files evolved across three major revisions. The table below maps earlier iterations to their final production equivalents:
+## Repository Layout
 
 ```
-[ Iteration 1: Household Machine ]    ──► [ Iteration 2: Fixed Costs Added ] ──► [ Iteration 3: Porchlight OS (Final) ]
-  • household-machine-spec.md                • household-machine-spec-v2.md          • porchlight-spec-v3.md
-  • household-machine-tasks.md               • household-machine-tasks-v2.md         • porchlight-tasks-v3.md
-  • claude-code-instructions.md              • claude-code-instructions-v2.md        • claude-code-instructions-v3.md (CLAUDE.md)
-  • docker-compose.yml                       • docker-compose-v2.yml                 • docker-compose-v2.yml
-  • grocy_client.py                          • grocy-client-v2.py                    • grocy-client-v2.py
-  • receipt_parser.py                        • firefly_rates_client.py               • firefly-rates-client-v2.py
-                                             • receipt_parser.py                     • receipt-parser-v2.py
-                                             • porchlight-dashboard.json             • porchlight-dashboard.json
+porchlight_OS/
+├── CLAUDE.md                          # Assistant instructions for Claude Code
+├── README.md                          # This file
+├── porchlight-spec.md                 # System architecture & specification
+├── porchlight-tasks.md                # Task taxonomy, formulas & roadmap
+├── porchlight-dashboard-ui-spec.md    # Spatial dashboard & UI specification
+├── porchlight-dashboard.json          # Importable Grafana portal dashboard
+├── docker-compose.yml                 # Service container orchestration
+├── .env.example                       # Environment variables template
+└── engine/                            # Porchlight middleware engine
+    ├── Dockerfile
+    ├── requirements.txt
+    └── app/
+        ├── main.py                    # Entry point worker
+        ├── config.py                  # Pydantic settings
+        ├── clients/                   # Async API clients (Provisions, Firefly)
+        ├── metrics/                   # Pure metric calculations (PFOR, EUR, provisions)
+        └── services/                  # Orchestration & DR-AIS decision logging
 ```
-
-> **Recommendation**: For your final VS Code project setup, use the **v3 specifications**, **`docker-compose-v2.yml`**, and the **v2 Python script files**.
 
 ---
 
-## 3. System Architecture Quick Reference
+## Architecture Quick Reference
 
 ```
                              [ PHYSICAL HOUSEHOLD ]
                                         │
  ┌─────────────────────────┬────────────┴────────────┬─────────────────────────┐
  ▼                         ▼                         ▼                         ▼
-[ Smart Electric Panel ]  [ Smart Water Meter ]     [ Pantry / Grocy ERP ]    [ Bank / Rates Feeds ]
+[ Smart Electric Panel ]  [ Smart Water Meter ]  [ Porchlight Provisions ]  [ Bank / Rates Feeds ]
  │                         │                         │                         │
  └─────────────────────────┼─────────────────────────┘                         │
                            ▼                                                   ▼
@@ -59,16 +51,18 @@ During our iterative design process, several files evolved across three major re
              ┌─────────────┴─────────────┐
              ▼                           ▼
     [ InfluxDB / Grafana ]    [ Porchlight Digital Twin Engine ]
-    (Porchlight Analytics)         (Metrics, SOPs, Agents)
+    (Porchlight Analytics)         (Metrics, DR-AIS, Agents)
                                          │
                                          ▼
                              [ Action Surfaces & DR-AIS ]
                             (Grid-Shifting, Auto-Orders)
 ```
 
+The dashboard itself is organized as **Above the Line (ATL)** — fixed capital & infrastructure — vs. **Below the Line (BTL)** — daily consumables & operations — around a central house icon; see `porchlight-dashboard-ui-spec.md` for the full spatial breakdown.
+
 ---
 
-## 4. Key Targeting System Metrics Summary
+## Key Targeting System Metrics
 
 * **Property Fixed Overhead Ratio (PFOR %)**:
   $$\text{PFOR} = \left( \frac{\text{Council Rates + HOA Levies + Insurance + Standing Supply Charges}}{\text{Total Monthly Household Spend}} \right) \times 100$$
@@ -80,21 +74,29 @@ During our iterative design process, several files evolved across three major re
 * **Per-Occupant Monthly Settlement**:
   $$\text{Occupant Due} = \text{Direct Personal Purchases} + \left( \frac{\text{Fixed House Overhead}}{\text{Active Occupants}} \right) + \text{Sub-metered Utilities}$$
 
+Full formulas and task taxonomy: `porchlight-tasks.md`.
+
 ---
 
-## 5. VS Code Deployment Steps
+## Running Locally (without Docker)
 
-1. **Initialize Project Directory**:
-   ```bash
-   mkdir porchlight && cd porchlight
-   ```
-2. **Setup `CLAUDE.md`**:
-   Copy `claude-code-instructions-v3.md` into `porchlight/CLAUDE.md`.
-3. **Copy Final Production Files**:
-   Place `porchlight-spec-v3.md`, `porchlight-tasks-v3.md`, `docker-compose-v2.yml`, `grocy-client-v2.py`, `firefly-rates-client-v2.py`, `receipt-parser-v2.py`, and `porchlight-dashboard.json` into your workspace.
-4. **Launch Stack**:
-   ```bash
-   docker compose up -d
-   ```
-5. **Prompt Claude Code**:
-   > *"Read `CLAUDE.md` and `porchlight-spec-v3.md`. Let me know when the containers are healthy and ready to test."*
+The engine runs standalone for development — no container required:
+
+```bash
+cd engine
+pip install -r requirements.txt
+python -m app.clients.provisions      # Provisions scoreboard demo
+python -m app.services.rates_allocator  # PFOR/EUR/settlement demo
+python -m app.services.ocr_parser     # Receipt OCR demo
+```
+
+Settings load from environment variables or a local `.env` (see `.env.example`); every client falls back to mock data if the corresponding service (Grocy, Firefly) isn't reachable.
+
+## Running via Docker
+
+```bash
+cp .env.example .env   # fill in real tokens/passwords
+docker compose up -d
+```
+
+Then import `porchlight-dashboard.json` into Grafana at `http://localhost:3000` (**Dashboards → Import**).

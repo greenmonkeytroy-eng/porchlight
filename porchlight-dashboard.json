@@ -19,11 +19,23 @@
   "liveNow": false,
   "panels": [
     {
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 10,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false },
+        "content": "<div style=\"background: linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%); padding: 10px 16px; border-radius: 8px; border: 1px solid #6366f1; display: flex; justify-content: space-between; align-items: center;\">\n  <div style=\"display: flex; align-items: center; gap: 12px;\">\n    <span style=\"font-size: 16px;\">⏱️ <b>TIMESCAPE PREDICTIVE TIME HORIZON:</b></span>\n    <div style=\"display: flex; gap: 6px;\">\n      <button style=\"background: #6366f1; color: white; border: none; padding: 4px 12px; border-radius: 4px; font-weight: 600; cursor: pointer;\">Real-Time</button>\n      <button style=\"background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 12px; border-radius: 4px; cursor: pointer;\">1 Month</button>\n      <button style=\"background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 12px; border-radius: 4px; cursor: pointer;\">1 Year</button>\n      <button style=\"background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 12px; border-radius: 4px; cursor: pointer;\">5 Years</button>\n      <button style=\"background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 12px; border-radius: 4px; cursor: pointer;\">10 Years</button>\n      <button style=\"background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 4px 12px; border-radius: 4px; cursor: pointer;\">30 Years</button>\n    </div>\n  </div>\n  <div>\n    <span style=\"color: #818cf8; font-size: 12px; font-weight: 600;\">SIMULATION ENGINE: TIMESCAPE HORIZON v1.0</span>\n  </div>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 2 },
       "id": 1,
       "options": {
         "code": { "language": "plaintext", "showLineNumbers": false },
-        "content": "<div style=\"background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); padding: 16px; border-radius: 8px; border-left: 4px solid #38bdf8; display: flex; justify-content: space-between; align-items: center;\">\n  <div>\n    <h2 style=\"margin:0; color: #f8fafc; font-weight: 700;\">🏡 Porchlight OS — Domestic Digital Twin Portal</h2>\n    <p style=\"margin: 4px 0 0 0; color: #94a3b8; font-size: 14px;\">Product Suite: <b>Twinscape / Timescape Digital Twin Engine</b> | Node: Local Household</p>\n  </div>\n  <div style=\"text-align: right;\">\n    <span style=\"background: #0284c7; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 12px;\">SYSTEM STATUS: OPTIMAL (L3)</span>\n  </div>\n</div>",
+        "content": "<div style=\"background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); padding: 12px 16px; border-radius: 8px; border-left: 4px solid #38bdf8; display: flex; justify-content: space-between; align-items: center;\">\n  <div>\n    <h2 style=\"margin:0; color: #f8fafc; font-weight: 700;\">🏡 Porchlight OS — Domestic Digital Twin Portal</h2>\n    <p style=\"margin: 2px 0 0 0; color: #94a3b8; font-size: 13px;\">Product Suite: <b>Twinscape (Spatial Twin) / Timescape (Predictive Simulation)</b> | Node: Local Household</p>\n  </div>\n  <div style=\"text-align: right;\">\n    <span style=\"background: #0284c7; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 12px;\">SYSTEM STATUS: OPTIMAL (L3)</span>\n  </div>\n</div>",
         "mode": "html"
       },
       "pluginVersion": "10.0.0",
@@ -47,7 +59,7 @@
           "unit": "percent"
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 3 },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 5 },
       "id": 2,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
@@ -81,7 +93,7 @@
           "unit": "currencyUSD"
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 3 },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 5 },
       "id": 3,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
@@ -115,7 +127,7 @@
           "unit": "currencyUSD"
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 3 },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 5 },
       "id": 4,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
@@ -149,7 +161,7 @@
           "unit": "percent"
         }
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 3 },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 5 },
       "id": 5,
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
@@ -164,7 +176,7 @@
           "refId": "A"
         }
       ],
-      "title": "Food Spoilage Ratio (Target < 2%)",
+      "title": "Provisions Spoilage Ratio (Target < 2%)",
       "type": "stat"
     },
     {
@@ -176,7 +188,7 @@
           "unit": "currencyUSD"
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
       "id": 6,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
@@ -190,7 +202,7 @@
           "refId": "A"
         }
       ],
-      "title": "Monthly Household Expense Trajectory (Fixed vs Total)",
+      "title": "Timescape Projected Expense Trajectory (Fixed vs Total)",
       "type": "timeseries"
     },
     {
@@ -202,7 +214,7 @@
           "unit": "currencyUSD"
         }
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
       "id": 7,
       "options": {
         "barGrouping": "Window",
@@ -218,7 +230,7 @@
           "refId": "A"
         }
       ],
-      "title": "Current Month Per-Occupant Settlement Balance",
+      "title": "Per-Occupant Settlement & Allocated Overhead Ledger",
       "type": "barchart"
     }
   ],
@@ -231,7 +243,7 @@
     "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
   },
   "timezone": "browser",
-  "title": "Porchlight OS — Domestic Digital Twin Portal",
-  "uid": "porchlight-portal-dashboard",
-  "version": 1
+  "title": "Porchlight OS — Domestic Digital Twin Portal (Timescape Enabled)",
+  "uid": "porchlight-portal-dashboard-v4",
+  "version": 4
 }
