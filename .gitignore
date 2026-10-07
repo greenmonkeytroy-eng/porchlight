@@ -1,0 +1,15 @@
+# Environment & secrets
+.env
+*.log
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Porchlight DR-AIS logs
+logs/*.json
+engine/logs/*.json
+
+# Data volumes (local docker)
+data/

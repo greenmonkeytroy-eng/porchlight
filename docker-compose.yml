@@ -1,0 +1,134 @@
+version: '3.8'
+
+# ==============================================================================
+# Porchlight OS — Docker Compose Stack (v2)
+# Privacy-First Digital Twin of Domestic Operations
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Home Assistant Core — Porchlight Local Automation Engine
+  # ----------------------------------------------------------------------------
+  porchlight-homeassistant:
+    container_name: porchlight-homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - TZ=${TIMEZONE:-America/Los_Angeles}
+    volumes:
+      - porchlight-ha-data:/config
+      - /etc/localtime:/etc/localtime:ro
+
+  # ----------------------------------------------------------------------------
+  # 2. Grocy — Porchlight Pantry & Grocery ERP
+  # ----------------------------------------------------------------------------
+  porchlight-grocy:
+    container_name: porchlight-grocy
+    image: lscr.io/linuxserver/grocy:latest
+    restart: unless-stopped
+    ports:
+      - "9283:80"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TIMEZONE:-America/Los_Angeles}
+    volumes:
+      - porchlight-grocy-data:/config
+    networks:
+      - porchlight-network
+
+  # ----------------------------------------------------------------------------
+  # 3. Firefly III — Porchlight Financial Ledger (Fixed Costs & Rates)
+  # ----------------------------------------------------------------------------
+  porchlight-firefly:
+    container_name: porchlight-firefly
+    image: fireflyiii/core:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_KEY=${FIREFLY_APP_KEY:-Some32CharacterRandomString123!}
+      - DB_CONNECTION=sqlite
+      - TZ=${TIMEZONE:-America/Los_Angeles}
+    volumes:
+      - porchlight-firefly-db:/var/www/html/storage/database
+      - porchlight-firefly-upload:/var/www/html/storage/upload
+    networks:
+      - porchlight-network
+
+  # ----------------------------------------------------------------------------
+  # 4. InfluxDB v2 — Porchlight High-Frequency Telemetry Store
+  # ----------------------------------------------------------------------------
+  porchlight-influxdb:
+    container_name: porchlight-influxdb
+    image: influxdb:2.7
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=porchlight
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD:-PorchlightPass123!}
+      - DOCKER_INFLUXDB_INIT_ORG=porchlight-home
+      - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
+    volumes:
+      - porchlight-influxdb-data:/var/lib/influxdb2
+      - porchlight-influxdb-config:/etc/influxdb2
+    networks:
+      - porchlight-network
+
+  # ----------------------------------------------------------------------------
+  # 5. Grafana — Porchlight Analytics & Scoreboard Portal
+  # ----------------------------------------------------------------------------
+  porchlight-grafana:
+    container_name: porchlight-grafana
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-PorchlightPass123!}
+    volumes:
+      - porchlight-grafana-data:/var/lib/grafana
+    networks:
+      - porchlight-network
+
+  # ----------------------------------------------------------------------------
+  # 6. Porchlight Digital Twin Middleware Engine
+  # ----------------------------------------------------------------------------
+  porchlight-engine:
+    container_name: porchlight-engine
+    build:
+      context: ./engine
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - GROCY_URL=http://porchlight-grocy:80
+      - FIREFLY_URL=http://porchlight-firefly:8080
+      - INFLUX_URL=http://porchlight-influxdb:8086
+      - INFLUX_ORG=porchlight-home
+      - INFLUX_BUCKET=telemetry
+    volumes:
+      - ./engine/app:/app
+      - ./logs:/app/logs
+    networks:
+      - porchlight-network
+    depends_on:
+      - porchlight-grocy
+      - porchlight-firefly
+      - porchlight-influxdb
+
+networks:
+  porchlight-network:
+    name: porchlight-network
+    driver: bridge
+
+volumes:
+  porchlight-ha-data:
+  porchlight-grocy-data:
+  porchlight-firefly-db:
+  porchlight-firefly-upload:
+  porchlight-influxdb-data:
+  porchlight-influxdb-config:
+  porchlight-grafana-data:

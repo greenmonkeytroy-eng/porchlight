@@ -1,0 +1,237 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "code": { "language": "plaintext", "showLineNumbers": false },
+        "content": "<div style=\"background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%); padding: 16px; border-radius: 8px; border-left: 4px solid #38bdf8; display: flex; justify-content: space-between; align-items: center;\">\n  <div>\n    <h2 style=\"margin:0; color: #f8fafc; font-weight: 700;\">🏡 Porchlight OS — Domestic Digital Twin Portal</h2>\n    <p style=\"margin: 4px 0 0 0; color: #94a3b8; font-size: 14px;\">Product Suite: <b>Twinscape / Timescape Digital Twin Engine</b> | Node: Local Household</p>\n  </div>\n  <div style=\"text-align: right;\">\n    <span style=\"background: #0284c7; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 12px;\">SYSTEM STATUS: OPTIMAL (L3)</span>\n  </div>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "10.0.0",
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "displayMode": "color-background" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 35 },
+              { "color": "red", "value": 50 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 3 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"pfor_percent\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Property Fixed Overhead Ratio (PFOR)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.35 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 3 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"effective_utility_rate_kwh\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Effective Utility Rate (EUR / kWh)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 4.5 },
+              { "color": "red", "value": 6.0 }
+            ]
+          },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 3 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"pantry_telemetry\") |> filter(fn: (r) => r[\"_field\"] == \"cost_per_2000_kcal\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Food Efficiency ($ / 2,000 kcal)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2.0 },
+              { "color": "red", "value": 5.0 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 3 },
+      "id": 5,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"pantry_telemetry\") |> filter(fn: (r) => r[\"_field\"] == \"food_spoilage_ratio_percent\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Food Spoilage Ratio (Target < 2%)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "axisColorMode": "text", "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 6,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"total_monthly_spend\" or r[\"_field\"] == \"fixed_overhead_spend\")",
+          "refId": "A"
+        }
+      ],
+      "title": "Monthly Household Expense Trajectory (Fixed vs Total)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
+          "unit": "currencyUSD"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 7,
+      "options": {
+        "barGrouping": "Window",
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
+          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"occupant_settlement\") |> filter(fn: (r) => r[\"_field\"] == \"total_due_usd\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "title": "Current Month Per-Occupant Settlement Balance",
+      "type": "barchart"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["porchlight", "digital-twin", "twinscape", "timescape", "domestic-os"],
+  "time": { "from": "now-30d", "to": "now" },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  },
+  "timezone": "browser",
+  "title": "Porchlight OS — Domestic Digital Twin Portal",
+  "uid": "porchlight-portal-dashboard",
+  "version": 1
+}
