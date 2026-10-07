@@ -13,3 +13,6 @@ engine/logs/*.json
 
 # Data volumes (local docker)
 data/
+
+# Personal/local Claude Code settings (machine-specific hooks, etc.)
+.claude/settings.local.json
