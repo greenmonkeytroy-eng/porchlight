@@ -8,6 +8,9 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
     steps:
       - uses: actions/checkout@v4
 
@@ -16,9 +19,41 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-        working-directory: engine
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check .
 
       - name: Run tests
         run: python -m pytest
-        working-directory: engine
+
+  stack:
+    # Boots the real stack: proves the Dockerfile builds, every health check passes,
+    # and the engine -> InfluxDB -> Grafana path is wired end to end.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start full stack and wait for every service to be healthy
+        run: docker compose up -d --build --wait --wait-timeout 600
+
+      - name: Service status
+        if: always()
+        run: docker compose ps
+
+      - name: Engine wrote dashboard metrics to InfluxDB
+        run: |
+          out=$(docker compose exec -T porchlight-influxdb influx query \
+            'from(bucket:"telemetry") |> range(start: -1h) |> filter(fn: (r) => r._measurement == "household_metrics")' \
+            --org porchlight-home --token porchlight-dev-token)
+          echo "$out"
+          echo "$out" | grep -q pfor_percent
+
+      - name: Grafana provisioned the datasource and dashboard
+        run: |
+          curl -fsS -u admin:PorchlightPass123! http://localhost:3000/api/datasources/uid/porchlight-influxdb
+          curl -fsS -u admin:PorchlightPass123! "http://localhost:3000/api/search?query=Porchlight" | grep -q Porchlight
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail=150

@@ -1,5 +1,5 @@
 """
-Porchlight OS — Provisions API Client (v4)
+Porchlight OS — Provisions API Client
 System: Porchlight Digital Twin Engine
 Function: Synchronizes Porchlight Provisions inventory (Food & Nutrition, Household &
 Cleaning, Pet Care, Personal Care, Building & Hardware) from the Grocy-backed
@@ -12,7 +12,7 @@ import datetime
 import logging
 
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from app.config import settings
 
@@ -34,6 +34,41 @@ class ProvisionItem(BaseModel):
     next_replacement_due: str | None = None
 
 
+GROCY_NEVER_EXPIRES = "2999-12-31"
+UNCATEGORIZED = "Uncategorized"
+
+
+def map_grocy_stock(stock_rows: list[dict], product_groups: list[dict]) -> list[ProvisionItem]:
+    """Translates Grocy's /api/stock rows into ProvisionItems.
+
+    Grocy product groups map to Porchlight categories, so name your Grocy groups
+    after the Provisions categories (e.g. "Food & Nutrition", "Pet Care").
+    """
+    group_names = {str(g["id"]): g["name"] for g in product_groups}
+    items: list[ProvisionItem] = []
+
+    for row in stock_rows:
+        product = row["product"]
+        amount = float(row.get("amount") or 0)
+        value = float(row.get("value") or 0)
+        best_before = row.get("best_before_date")
+
+        items.append(
+            ProvisionItem(
+                id=f"GROCY_{product['id']}",
+                name=product["name"],
+                category=group_names.get(str(product.get("product_group_id")), UNCATEGORIZED),
+                sub_category="General",
+                quantity=amount,
+                unit_price_usd=value / amount if amount > 0 else 0.0,
+                min_buffer_qty=float(product.get("min_stock_amount") or 0),
+                calories_per_unit=float(product["calories"]) if product.get("calories") else None,
+                best_before=None if best_before in (None, GROCY_NEVER_EXPIRES) else best_before,
+            )
+        )
+    return items
+
+
 class ProvisionsClient:
     def __init__(self, base_url: str | None = None, api_key: str | None = None) -> None:
         self.base_url = base_url or settings.grocy_url
@@ -45,22 +80,25 @@ class ProvisionsClient:
         }
 
     async def fetch_provisions_inventory(self) -> list[ProvisionItem]:
-        """Fetch Porchlight Provisions inventory, falling back to mock data."""
-        endpoint = f"{self.base_url}/api/objects/stock"
+        """Fetch Porchlight Provisions inventory from Grocy, falling back to mock data."""
         logger.info("Connecting to Porchlight Provisions instance at %s...", self.base_url)
 
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(endpoint, headers=self.headers)
-                response.raise_for_status()
-                return [ProvisionItem.model_validate(item) for item in response.json()]
+                stock = await client.get(f"{self.base_url}/api/stock", headers=self.headers)
+                stock.raise_for_status()
+                groups = await client.get(f"{self.base_url}/api/objects/product_groups", headers=self.headers)
+                groups.raise_for_status()
+            return map_grocy_stock(stock.json(), groups.json())
         except httpx.HTTPError as exc:
             logger.warning("Unable to connect to live Provisions API (%s). Using Porchlight mock inventory.", exc)
-            return self._mock_inventory()
+        except (ValidationError, KeyError, TypeError, ValueError) as exc:
+            logger.warning("Unexpected Grocy response shape (%s). Using Porchlight mock inventory.", exc)
+        return self._mock_inventory()
 
     @staticmethod
     def _mock_inventory() -> list[ProvisionItem]:
-        today = datetime.date.today()
+        today = datetime.datetime.now(datetime.UTC).date()
         return [
             # Food & Nutrition
             ProvisionItem(

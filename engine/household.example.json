@@ -1,0 +1,9 @@
+{
+  "total_monthly_spend": 2800.00,
+  "utility_variable_spend": 180.00,
+  "kwh_consumed": 600.0,
+  "occupants": [
+    {"id": "OCC_A", "name": "Occupant A", "direct_spending": 420.00, "submetered_utility": 95.00},
+    {"id": "OCC_B", "name": "Occupant B", "direct_spending": 310.00, "submetered_utility": 85.00}
+  ]
+}

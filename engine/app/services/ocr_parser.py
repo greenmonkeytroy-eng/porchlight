@@ -1,5 +1,5 @@
 """
-Porchlight OS — OCR Receipt Parser & Pantry Ingestion Pipeline (v3)
+Porchlight OS — OCR Receipt Parser & Pantry Ingestion Pipeline
 System: Porchlight Digital Twin Engine
 Function: Converts scanned paper/digital receipts into structured item logs with
 confidence scoring and DR-AIS logging for human-in-the-loop review.
@@ -49,7 +49,7 @@ class ReceiptParser:
         merchant = lines[0] if lines else "Unknown Merchant"
 
         date_match = _DATE_PATTERN.search(text)
-        receipt_date = date_match.group(1) if date_match else datetime.date.today().isoformat()
+        receipt_date = date_match.group(1) if date_match else datetime.datetime.now(datetime.UTC).date().isoformat()
 
         items: list[ReceiptItem] = []
         for line in lines[1:]:
@@ -118,4 +118,4 @@ if __name__ == "__main__":
     print(f"Total:    ${result.total_calculated_spend_usd}\n")
 
     for item in result.items:
-        print(f"• {item.raw_item_name} -> ${item.price_usd} (Confidence: {item.confidence_score})")
+        print(f"- {item.raw_item_name} -> ${item.price_usd} (Confidence: {item.confidence_score})")

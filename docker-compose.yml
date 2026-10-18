@@ -1,27 +1,38 @@
-version: '3.8'
-
 # ==============================================================================
-# Porchlight OS — Docker Compose Stack (v2)
+# Porchlight OS — Docker Compose Stack
 # Privacy-First Digital Twin of Domestic Operations
+# Copy .env.example to .env and change every password/token before real use.
 # ==============================================================================
 
 services:
   # ----------------------------------------------------------------------------
   # 1. Home Assistant Core — Porchlight Local Automation Engine
   # ----------------------------------------------------------------------------
+  # Bridge networking so the engine can reach HA by container name (host
+  # networking isn't available by default on Docker Desktop for Windows/macOS).
+  # On a Linux host you may switch to `network_mode: host` for mDNS/device
+  # discovery — then drop `ports`/`networks` and point HOMEASSISTANT_URL at the host.
   porchlight-homeassistant:
     container_name: porchlight-homeassistant
     image: ghcr.io/home-assistant/home-assistant:stable
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "8123:8123"
     environment:
       - TZ=${TIMEZONE:-America/Los_Angeles}
     volumes:
       - porchlight-ha-data:/config
-      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - porchlight-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8123/manifest.json || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
   # ----------------------------------------------------------------------------
-  # 2. Grocy — Porchlight Pantry & Grocery ERP
+  # 2. Grocy — Porchlight Provisions backend (consumables ERP)
   # ----------------------------------------------------------------------------
   porchlight-grocy:
     container_name: porchlight-grocy
@@ -37,6 +48,12 @@ services:
       - porchlight-grocy-data:/config
     networks:
       - porchlight-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   # ----------------------------------------------------------------------------
   # 3. Firefly III — Porchlight Financial Ledger (Fixed Costs & Rates)
@@ -48,7 +65,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - APP_KEY=${FIREFLY_APP_KEY:-Some32CharacterRandomString123!}
+      # Firefly refuses to boot unless APP_KEY is exactly 32 characters.
+      - APP_KEY=${FIREFLY_APP_KEY:-SomeRandomStringOf32CharsExactly}
       - DB_CONNECTION=sqlite
       - TZ=${TIMEZONE:-America/Los_Angeles}
     volumes:
@@ -56,6 +74,12 @@ services:
       - porchlight-firefly-upload:/var/www/html/storage/upload
     networks:
       - porchlight-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
   # ----------------------------------------------------------------------------
   # 4. InfluxDB v2 — Porchlight High-Frequency Telemetry Store
@@ -72,14 +96,22 @@ services:
       - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD:-PorchlightPass123!}
       - DOCKER_INFLUXDB_INIT_ORG=porchlight-home
       - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
+      # Fixed admin token so the engine and Grafana can authenticate on first boot.
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN:-porchlight-dev-token}
     volumes:
       - porchlight-influxdb-data:/var/lib/influxdb2
       - porchlight-influxdb-config:/etc/influxdb2
     networks:
       - porchlight-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # ----------------------------------------------------------------------------
-  # 5. Grafana — Porchlight Analytics & Scoreboard Portal
+  # 5. Grafana — Porchlight Portal (datasource + dashboard auto-provisioned)
   # ----------------------------------------------------------------------------
   porchlight-grafana:
     container_name: porchlight-grafana
@@ -89,10 +121,22 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-PorchlightPass123!}
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-porchlight-dev-token}
     volumes:
       - porchlight-grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./porchlight-dashboard.json:/var/lib/grafana/dashboards/porchlight-dashboard.json:ro
     networks:
       - porchlight-network
+    depends_on:
+      porchlight-influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # ----------------------------------------------------------------------------
   # 6. Porchlight Digital Twin Middleware Engine
@@ -103,21 +147,38 @@ services:
       context: ./engine
       dockerfile: Dockerfile
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    # Container hostnames override the localhost URLs in .env (which are for local runs).
     environment:
+      - HOMEASSISTANT_URL=http://porchlight-homeassistant:8123
       - GROCY_URL=http://porchlight-grocy:80
       - FIREFLY_URL=http://porchlight-firefly:8080
       - INFLUX_URL=http://porchlight-influxdb:8086
       - INFLUX_ORG=porchlight-home
       - INFLUX_BUCKET=telemetry
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-porchlight-dev-token}
     volumes:
       - ./engine:/app
       - ./logs:/app/logs
     networks:
       - porchlight-network
     depends_on:
-      - porchlight-grocy
-      - porchlight-firefly
-      - porchlight-influxdb
+      porchlight-influxdb:
+        condition: service_healthy
+      # Grocy/Firefly/HA may still be booting; the engine falls back to mock data until they're up.
+      porchlight-grocy:
+        condition: service_started
+      porchlight-firefly:
+        condition: service_started
+    healthcheck:
+      # main.py touches this heartbeat after every cycle (hourly); stale for 2h = unhealthy.
+      test: ["CMD", "python", "-c", "import os,sys,time; sys.exit(0 if time.time() - os.path.getmtime('/tmp/porchlight-heartbeat') < 7200 else 1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
 
 networks:
   porchlight-network:

@@ -4,20 +4,22 @@ import json
 from app.services.drais_logger import DecisionRecord, emit_decision_record
 
 
-def test_emit_decision_record_writes_valid_schema(tmp_path):
-    record = DecisionRecord(
+def _record(**overrides):
+    return DecisionRecord(
         component="test",
         action_type="UNIT_TEST_ACTION",
         decision_logic="DETERMINISTIC_TEST_LOGIC",
-        inputs={"a": 1},
+        inputs=overrides.pop("inputs", {"a": 1}),
         output={"b": 2},
+        **overrides,
     )
 
-    path = emit_decision_record(record, log_dir=str(tmp_path))
+
+def test_emit_decision_record_writes_valid_schema(tmp_path):
+    path = emit_decision_record(_record(), log_dir=str(tmp_path))
 
     assert path.exists()
-    today = datetime.date.today().strftime("%Y%m%d")
-    assert path.name == f"dr_ais_test_{today}.json"
+    assert path.name.startswith("dr_ais_test_") and path.suffix == ".json"
 
     data = json.loads(path.read_text())
     assert data["system"] == "Porchlight OS"
@@ -28,21 +30,19 @@ def test_emit_decision_record_writes_valid_schema(tmp_path):
     assert data["output"] == {"b": 2}
     assert data["human_override_available"] is True
     assert data["privacy_scope"] == "LOCAL_NETWORK_ONLY"
-    # Must be a real, parseable ISO-8601 UTC timestamp.
-    datetime.datetime.fromisoformat(data["timestamp"])
+    assert datetime.datetime.fromisoformat(data["timestamp"]).tzinfo is not None
+
+
+def test_records_are_immutable_and_never_overwritten(tmp_path):
+    first = emit_decision_record(_record(inputs={"run": 1}), log_dir=str(tmp_path))
+    second = emit_decision_record(_record(inputs={"run": 2}), log_dir=str(tmp_path))
+
+    assert first != second
+    assert len(list(tmp_path.iterdir())) == 2
+    assert json.loads(first.read_text())["inputs"] == {"run": 1}
 
 
 def test_human_override_available_can_be_overridden(tmp_path):
-    record = DecisionRecord(
-        component="test",
-        action_type="UNIT_TEST_ACTION",
-        decision_logic="DETERMINISTIC_TEST_LOGIC",
-        inputs={},
-        output={},
-        human_override_available=False,
-    )
+    path = emit_decision_record(_record(human_override_available=False), log_dir=str(tmp_path))
 
-    path = emit_decision_record(record, log_dir=str(tmp_path))
-    data = json.loads(path.read_text())
-
-    assert data["human_override_available"] is False
+    assert json.loads(path.read_text())["human_override_available"] is False

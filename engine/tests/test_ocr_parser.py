@@ -1,3 +1,5 @@
+import datetime
+
 from app.services.ocr_parser import ReceiptParser
 
 MOCK_RECEIPT = """
@@ -50,10 +52,8 @@ def test_short_item_names_get_low_confidence_and_require_review():
     assert result.items[0].requires_human_review is True
 
 
-def test_no_date_in_text_falls_back_to_today():
+def test_no_date_in_text_falls_back_to_today_utc():
     receipt = "SOME SHOP\nWIDGET $5.00\n"
     result = ReceiptParser().parse_raw_receipt_text(receipt)
 
-    import datetime
-
-    assert result.receipt_date == datetime.date.today().isoformat()
+    assert result.receipt_date == datetime.datetime.now(datetime.UTC).date().isoformat()

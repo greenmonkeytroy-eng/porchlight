@@ -1,17 +1,25 @@
 """
-Porchlight OS — Engine Settings (v3)
+Porchlight OS — Engine Settings
 System: Porchlight Digital Twin Engine
 Function: Loads HA, Grocy, Firefly, and InfluxDB connection settings from the
-environment (or a local .env), so the engine runs the same with or without Docker.
+environment (or a .env file), so the engine runs the same with or without Docker.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+ENGINE_DIR = Path(__file__).resolve().parents[1]
+REPO_DIR = ENGINE_DIR.parent
 
 
 class PorchlightSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    # Repo-root .env first (local runs from engine/), then cwd .env; real env vars always win.
+    model_config = SettingsConfigDict(
+        env_file=(REPO_DIR / ".env", ".env"), env_file_encoding="utf-8", extra="ignore"
+    )
 
     timezone: str = "America/Los_Angeles"
     log_level: str = "INFO"
@@ -32,6 +40,8 @@ class PorchlightSettings(BaseSettings):
 
     confidence_threshold: float = 0.70
     pfor_alert_threshold: float = 40.0
+
+    household_profile_path: Path = ENGINE_DIR / "household.json"
 
 
 settings = PorchlightSettings()

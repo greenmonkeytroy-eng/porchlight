@@ -83,20 +83,26 @@ Full formulas and task taxonomy: `porchlight-tasks.md`.
 The engine runs standalone for development — no container required:
 
 ```bash
+cp .env.example .env                    # optional; loaded from the repo root
 cd engine
-pip install -r requirements.txt
-python -m app.clients.provisions      # Provisions scoreboard demo
+pip install -r requirements-dev.txt
+python -m app.clients.provisions        # Provisions scoreboard demo
 python -m app.services.rates_allocator  # PFOR/EUR/settlement demo
-python -m app.services.ocr_parser     # Receipt OCR demo
+python -m app.services.ocr_parser       # Receipt OCR demo
+python -m pytest && ruff check .        # tests + lint (same as CI)
 ```
 
-Settings load from environment variables or a local `.env` (see `.env.example`); every client falls back to mock data if the corresponding service (Grocy, Firefly) isn't reachable.
+Grocy, Firefly and Home Assistant reads fall back to mock data when the service isn't reachable; InfluxDB writes just log a warning.
+
+**Household figures:** the PFOR/settlement cycle reads monthly spend, utility usage and occupants from `engine/household.json`. Copy `engine/household.example.json` to create it — it's gitignored so personal figures never reach the repo. Without it, the example figures are used.
 
 ## Running via Docker
 
 ```bash
-cp .env.example .env   # fill in real tokens/passwords
-docker compose up -d
+cp .env.example .env   # change every password/token first
+docker compose up -d --wait
 ```
 
-Then import `porchlight-dashboard.json` into Grafana at `http://localhost:3000` (**Dashboards → Import**).
+Grafana at `http://localhost:3000` comes up with the InfluxDB datasource and the Porchlight dashboard already provisioned — no manual import. The engine writes its metrics hourly, starting immediately on boot. (The "Provisions Spoilage Ratio" panel shows *No data* until discarded-food tracking exists.)
+
+CI boots this same stack on every push to prove it builds, every health check passes, and data reaches the dashboard.

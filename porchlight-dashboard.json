@@ -70,7 +70,7 @@
       "targets": [
         {
           "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
-          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"pfor_percent\") |> last()",
+          "query": "from(bucket: \"telemetry\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"pfor_percent\") |> last()",
           "refId": "A"
         }
       ],
@@ -104,7 +104,7 @@
       "targets": [
         {
           "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
-          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"effective_utility_rate_kwh\") |> last()",
+          "query": "from(bucket: \"telemetry\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"effective_utility_rate_kwh\") |> last()",
           "refId": "A"
         }
       ],
@@ -138,7 +138,7 @@
       "targets": [
         {
           "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
-          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"pantry_telemetry\") |> filter(fn: (r) => r[\"_field\"] == \"cost_per_2000_kcal\") |> last()",
+          "query": "from(bucket: \"telemetry\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"pantry_telemetry\") |> filter(fn: (r) => r[\"_field\"] == \"cost_per_2000_kcal\") |> last()",
           "refId": "A"
         }
       ],
@@ -172,7 +172,7 @@
       "targets": [
         {
           "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
-          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"pantry_telemetry\") |> filter(fn: (r) => r[\"_field\"] == \"food_spoilage_ratio_percent\") |> last()",
+          "query": "from(bucket: \"telemetry\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"pantry_telemetry\") |> filter(fn: (r) => r[\"_field\"] == \"food_spoilage_ratio_percent\") |> last()",
           "refId": "A"
         }
       ],
@@ -198,7 +198,7 @@
       "targets": [
         {
           "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
-          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"total_monthly_spend\" or r[\"_field\"] == \"fixed_overhead_spend\")",
+          "query": "from(bucket: \"telemetry\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"household_metrics\") |> filter(fn: (r) => r[\"_field\"] == \"total_monthly_spend\" or r[\"_field\"] == \"fixed_overhead_spend\")",
           "refId": "A"
         }
       ],
@@ -226,7 +226,7 @@
       "targets": [
         {
           "datasource": { "type": "influxdb", "uid": "porchlight-influxdb" },
-          "query": "from(bucket: \"porchlight\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"occupant_settlement\") |> filter(fn: (r) => r[\"_field\"] == \"total_due_usd\") |> last()",
+          "query": "from(bucket: \"telemetry\") |> range(start: -30d) |> filter(fn: (r) => r[\"_measurement\"] == \"occupant_settlement\") |> filter(fn: (r) => r[\"_field\"] == \"total_due_usd\") |> last()",
           "refId": "A"
         }
       ],

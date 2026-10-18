@@ -7,6 +7,10 @@ __pycache__/
 *.pyc
 venv/
 .pytest_cache/
+.ruff_cache/
+
+# Personal household figures (spend, occupants) — never committed; see engine/household.example.json
+engine/household.json
 
 # Porchlight DR-AIS logs
 logs/*.json

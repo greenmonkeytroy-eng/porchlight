@@ -26,11 +26,14 @@ porchlight/
 ├── porchlight-tasks.md                # Task Taxonomy & Implementation Roadmap
 ├── porchlight-dashboard-ui-spec.md    # Spatial Dashboard & UI Specification
 ├── porchlight-dashboard.json          # Importable Grafana Portal Dashboard
-├── docker-compose.yml                 # Service container orchestration
-├── .env.example                       # Environment variables template
+├── docker-compose.yml                 # Service container orchestration (health checks on every service)
+├── .env.example                       # Environment variables template (localhost URLs for local runs)
+├── grafana/provisioning/              # Auto-provisioned InfluxDB datasource + dashboard loader
 ├── engine/                            # Porchlight Middleware Engine
 │   ├── Dockerfile
-│   ├── requirements.txt
+│   ├── requirements.txt               # Runtime deps only (what the image installs)
+│   ├── requirements-dev.txt           # + pytest, pytest-asyncio, ruff
+│   ├── household.example.json         # Household spend/occupant inputs; copy to household.json (gitignored)
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── main.py                    # Entry point worker
@@ -75,7 +78,9 @@ porchlight/
 }
 ```
 
-Use the shared `engine/app/services/drais_logger.py` (`DecisionRecord` + `emit_decision_record`) to emit these — don't hand-roll another copy of this schema per service.
+Use the shared `engine/app/services/drais_logger.py` (`DecisionRecord` + `emit_decision_record`) to emit these — don't hand-roll another copy of this schema per service. Each call writes a new uniquely-named file; records are never overwritten.
+
+6. **Dashboard contract**: `porchlight-dashboard.json` reads InfluxDB measurements that `engine/app/main.py` writes. `engine/tests/test_main_cycles.py` fails if the two drift apart — when you change a metric name or add a panel, update both sides.
 
 ---
 

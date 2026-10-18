@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: Porchlight InfluxDB
+    # Must match the datasource uid referenced by every panel in porchlight-dashboard.json.
+    uid: porchlight-influxdb
+    type: influxdb
+    access: proxy
+    url: http://porchlight-influxdb:8086
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: porchlight-home
+      defaultBucket: telemetry
+    secureJsonData:
+      token: $INFLUX_TOKEN

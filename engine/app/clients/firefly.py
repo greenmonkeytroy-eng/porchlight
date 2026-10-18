@@ -1,5 +1,5 @@
 """
-Porchlight OS — Firefly III Fixed Costs Client (v3)
+Porchlight OS — Firefly III Fixed Costs Client
 System: Porchlight Digital Twin Engine
 Function: Ingests recurring house-associated fixed costs (council rates, HOA/strata
 levies, insurance, standing utility fees) from Firefly III.

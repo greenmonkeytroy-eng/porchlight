@@ -24,21 +24,27 @@ logger = logging.getLogger("PorchlightInflux")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [Porchlight-Influx] - %(levelname)s - %(message)s")
 
 
+def _escape(value: str, special: str) -> str:
+    for ch in special:
+        value = value.replace(ch, f"\\{ch}")
+    return value
+
+
 def build_line_protocol(
     measurement: str,
     fields: dict[str, float],
     tags: dict[str, str] | None = None,
     time: datetime.datetime | None = None,
 ) -> str:
-    """Builds a single InfluxDB line-protocol point."""
+    """Builds a single InfluxDB line-protocol point, escaping spaces/commas/equals per the spec."""
     if not fields:
         raise ValueError("A point requires at least one field")
 
-    tag_part = "".join(f",{k}={v}" for k, v in (tags or {}).items())
-    field_part = ",".join(f"{k}={v}" for k, v in fields.items())
+    tag_part = "".join(f",{_escape(k, ', =')}={_escape(str(v), ', =')}" for k, v in (tags or {}).items())
+    field_part = ",".join(f"{_escape(k, ', =')}={float(v)}" for k, v in fields.items())
     timestamp_ns = int((time or datetime.datetime.now(datetime.UTC)).timestamp() * 1_000_000_000)
 
-    return f"{measurement}{tag_part} {field_part} {timestamp_ns}"
+    return f"{_escape(measurement, ', ')}{tag_part} {field_part} {timestamp_ns}"
 
 
 class InfluxClient:

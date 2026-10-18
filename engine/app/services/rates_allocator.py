@@ -1,5 +1,5 @@
 """
-Porchlight OS — Fixed House Cost Allocation Service (v3)
+Porchlight OS — Fixed House Cost Allocation Service
 System: Porchlight Digital Twin Engine
 Function: Orchestrates Firefly III fixed-cost ingestion and computes PFOR, EUR,
 and per-occupant monthly settlement balances, emitting a DR-AIS Decision Record.
@@ -9,8 +9,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from pathlib import Path
+
+from pydantic import BaseModel
 
 from app.clients.firefly import FireflyClient, FixedCosts
+from app.config import ENGINE_DIR
 from app.metrics.energy_metrics import EnergyMetrics, calculate_eur
 from app.metrics.property_metrics import (
     Occupant,
@@ -23,6 +27,26 @@ from app.services.drais_logger import DecisionRecord, emit_decision_record
 
 logger = logging.getLogger("PorchlightRatesAllocator")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - [Porchlight-Rates] - %(levelname)s - %(message)s")
+
+
+EXAMPLE_PROFILE_PATH = ENGINE_DIR / "household.example.json"
+
+
+class HouseholdProfile(BaseModel):
+    """Monthly household inputs the allocator can't yet source from Firefly/InfluxDB."""
+
+    total_monthly_spend: float
+    utility_variable_spend: float
+    kwh_consumed: float
+    occupants: list[Occupant]
+
+
+def load_household_profile(path: Path) -> HouseholdProfile:
+    """Loads the household profile, falling back to the committed example profile."""
+    if not path.exists():
+        logger.warning("No household profile at %s; using example profile %s.", path, EXAMPLE_PROFILE_PATH)
+        path = EXAMPLE_PROFILE_PATH
+    return HouseholdProfile.model_validate_json(path.read_text(encoding="utf-8"))
 
 
 @dataclass
@@ -97,7 +121,7 @@ if __name__ == "__main__":
         print("--- Per-Occupant Monthly Settlement ---")
         for s in result.settlements:
             print(
-                f"• {s.name}: Personal Direct (${s.direct_personal_spend}) + "
+                f"- {s.name}: Personal Direct (${s.direct_personal_spend}) + "
                 f"Fixed Share (${s.fixed_overhead_share}) + Power (${s.submetered_utility_spend}) "
                 f"= Total Due: ${s.total_monthly_due_usd}"
             )

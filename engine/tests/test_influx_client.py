@@ -23,6 +23,17 @@ def test_build_line_protocol_without_tags():
     assert line == "water_flow lpm=2.1 1767225600000000000"
 
 
+def test_build_line_protocol_escapes_spaces_commas_and_equals():
+    line = build_line_protocol(
+        "occupant settlement",
+        fields={"total due": 950.0},
+        tags={"name": "Occupant A", "note": "a=b,c"},
+        time=datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC),
+    )
+
+    assert line == r"occupant\ settlement,name=Occupant\ A,note=a\=b\,c total\ due=950.0 1767225600000000000"
+
+
 def test_build_line_protocol_requires_at_least_one_field():
     with pytest.raises(ValueError):
         build_line_protocol("power_draw", fields={})

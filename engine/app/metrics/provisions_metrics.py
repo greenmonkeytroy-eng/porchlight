@@ -52,7 +52,7 @@ class ProvisionsMetrics(BaseModel):
 def calculate_provisions_metrics(inventory: list[ProvisionItem], expiry_horizon_days: int = 3) -> ProvisionsMetrics:
     """Generates primary, secondary, and tertiary analytics across Porchlight Provisions."""
     total_valuation = sum(item.quantity * item.unit_price_usd for item in inventory)
-    cutoff = (datetime.date.today() + datetime.timedelta(days=expiry_horizon_days)).isoformat()
+    cutoff = (datetime.datetime.now(datetime.UTC).date() + datetime.timedelta(days=expiry_horizon_days)).isoformat()
 
     categories: dict[str, dict] = {}
     items_to_reorder: list[ReorderAlert] = []

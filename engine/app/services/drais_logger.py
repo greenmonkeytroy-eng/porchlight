@@ -2,14 +2,14 @@
 Porchlight OS — Shared DR-AIS Decision Record Logger
 System: Porchlight Digital Twin Engine
 Function: Validates and emits the common DR-AIS Decision Record schema used by every
-Porchlight service (pantry metrics, rates allocation, receipt OCR, ...).
+Porchlight service (provisions metrics, rates allocation, receipt OCR, ...).
 """
 
 from __future__ import annotations
 
 import datetime
 import logging
-import os
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -33,9 +33,11 @@ class DecisionRecord(BaseModel):
 
 
 def emit_decision_record(record: DecisionRecord, log_dir: str = "logs") -> Path:
-    """Writes an immutable DR-AIS Decision Record JSON file for Porchlight governance."""
-    os.makedirs(log_dir, exist_ok=True)
-    filename = Path(log_dir) / f"dr_ais_{record.component}_{datetime.date.today().strftime('%Y%m%d')}.json"
-    filename.write_text(record.model_dump_json(indent=2))
+    """Writes one immutable DR-AIS Decision Record per call — never overwrites an existing record."""
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
+    stamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    filename = Path(log_dir) / f"dr_ais_{record.component}_{stamp}_{uuid.uuid4().hex[:8]}.json"
+    with filename.open("x", encoding="utf-8") as f:
+        f.write(record.model_dump_json(indent=2))
     logger.info("DR-AIS Decision Record written to %s", filename)
     return filename
